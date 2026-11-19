@@ -1,0 +1,15 @@
+node_modules/
+
+# Meteor Modern-Tools build context directories
+_build
+*/build-assets
+*/build-chunks
+.rsdoctor
+
+# Meteor Modern-Tools build context directories
+*/build-assets*
+*/build-chunks*
+
+# Module Federation artifacts emitted into public/
+public/remoteEntry.js*
+public/mf-*.json

@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-11-19T13:54:52.385Z",
+        "reason": "Claude: Inter is the stock font of Meteor's 'meteor create --react' scaffold in this federation demo; findings were in gitignored, hash-named Rspack build chunks, not hand-written design"
+      }
+    ]
+  }
+}

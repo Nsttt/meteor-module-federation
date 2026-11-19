@@ -1,0 +1,8 @@
+{
+  "public": {
+    "remotes": {
+      "meteor_remote": "http://localhost:4000/mf-manifest.json",
+      "remote_widgets": "http://localhost:3030/mf-manifest.json"
+    }
+  }
+}

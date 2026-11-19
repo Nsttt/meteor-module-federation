@@ -1,0 +1,16 @@
+{
+  "name": "meteor-module-federation",
+  "private": true,
+  "description": "Module Federation with Meteor 3.6 (Rspack): a Meteor host loading a Meteor remote and an Rsbuild remote",
+  "scripts": {
+    "dev:host": "npm --prefix apps/meteor-host start",
+    "dev:meteor-remote": "npm --prefix apps/meteor-remote start",
+    "dev:remote": "npm --prefix apps/remote-widgets run dev",
+    "build:remote": "npm --prefix apps/remote-widgets run build",
+    "prod:remote": "npm --prefix apps/remote-widgets run build && npm --prefix apps/remote-widgets run preview",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1"
+  }
+}
