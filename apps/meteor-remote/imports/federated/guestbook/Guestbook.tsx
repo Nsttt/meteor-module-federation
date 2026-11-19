@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
+import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { connection, isOnHostPage, Messages, remoteOrigin } from "./connection";
-import { GUESTBOOK_RECENT, GUESTBOOK_SIGN, MAX_NAME, MAX_TEXT } from "./constants";
+import { GUESTBOOK_RECENT, GUESTBOOK_SIGN, MAX_NAME, MAX_TEXT, type SignArgs } from "./constants";
+
+export interface GuestbookProps {
+  title?: string;
+}
 
 /**
  * Exposed as `meteor_remote/Guestbook`.
@@ -10,10 +15,10 @@ import { GUESTBOOK_RECENT, GUESTBOOK_SIGN, MAX_NAME, MAX_TEXT } from "./constant
  * reactive over DDP. It renders inside the host's React tree with the host's
  * React and Meteor client (shared), while its data comes from this app.
  */
-export default function Guestbook({ title = "Guestbook" }) {
+export default function Guestbook({ title = "Guestbook" }: GuestbookProps) {
   const [name, setName] = useState("");
   const [text, setText] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const { ready, messages, status } = useTracker(() => {
     const handle = connection.subscribe(GUESTBOOK_RECENT);
@@ -24,14 +29,15 @@ export default function Guestbook({ title = "Guestbook" }) {
     };
   }, []);
 
-  const sign = async (event) => {
+  const sign = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     try {
-      await connection.callAsync(GUESTBOOK_SIGN, { name, text });
+      const args: SignArgs = { name, text };
+      await connection.callAsync(GUESTBOOK_SIGN, args);
       setText("");
     } catch (err) {
-      setError(err.reason || err.message);
+      setError(err instanceof Meteor.Error ? String(err.reason ?? err.message) : String(err));
     }
   };
 
@@ -84,7 +90,7 @@ export default function Guestbook({ title = "Guestbook" }) {
 }
 
 const accent = "#de4f4f"; // Meteor red
-const styles = {
+const styles: Record<string, CSSProperties> = {
   card: { border: `2px dashed ${accent}`, borderRadius: 12, padding: 16, display: "grid", gap: 10 },
   header: { display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" },
   badge: { fontSize: 12, color: accent },

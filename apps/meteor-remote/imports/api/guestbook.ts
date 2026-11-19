@@ -6,15 +6,17 @@ import {
   GUESTBOOK_SIGN,
   MAX_NAME,
   MAX_TEXT,
+  type GuestbookEntry,
+  type SignArgs,
 } from "/imports/federated/guestbook/constants";
 
-export const Messages = new Mongo.Collection(GUESTBOOK);
+export const Messages = new Mongo.Collection<GuestbookEntry>(GUESTBOOK);
 
 Meteor.publish(GUESTBOOK_RECENT, function () {
   return Messages.find({}, { sort: { createdAt: -1 }, limit: 20 });
 });
 
-const clean = (value, max, field) => {
+const clean = (value: unknown, max: number, field: string): string => {
   const trimmed = typeof value === "string" ? value.trim() : "";
   if (!trimmed) throw new Meteor.Error("invalid", `${field} is required`);
   if (trimmed.length > max) throw new Meteor.Error("invalid", `${field} is too long`);
@@ -22,7 +24,7 @@ const clean = (value, max, field) => {
 };
 
 Meteor.methods({
-  async [GUESTBOOK_SIGN]({ name, text } = {}) {
+  async [GUESTBOOK_SIGN]({ name, text }: Partial<SignArgs> = {}) {
     return Messages.insertAsync({
       name: clean(name, MAX_NAME, "Name"),
       text: clean(text, MAX_TEXT, "Message"),

@@ -1,9 +1,10 @@
 import { lazy, Suspense } from "react";
-import { Header } from "./Header.jsx";
+import { Header } from "./Header";
 
-// Lazy: modules under imports/federated consume shared React/Meteor, which
-// load asynchronously.
-const Guestbook = lazy(() => import("/imports/federated/guestbook/Guestbook.jsx"));
+// This app is a remote, but its own page renders the Guestbook too. Code under
+// imports/federated consumes React/Meteor from the share scope, which loads
+// asynchronously, so import it lazily.
+const Guestbook = lazy(() => import("/imports/federated/guestbook/Guestbook"));
 
 export const App = () => (
   <div className="page">

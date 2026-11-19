@@ -8,9 +8,16 @@
     "dev:remote": "npm --prefix apps/remote-widgets run dev",
     "build:remote": "npm --prefix apps/remote-widgets run build",
     "prod:remote": "npm --prefix apps/remote-widgets run build && npm --prefix apps/remote-widgets run preview",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "typecheck": "tsc -p . && npm run typecheck --workspaces --if-present && npm --prefix apps/meteor-remote run typecheck && npm --prefix apps/meteor-host run typecheck && npm --prefix apps/remote-widgets run typecheck"
   },
   "devDependencies": {
-    "@playwright/test": "^1.65.1"
-  }
+    "@playwright/test": "^1.65.1",
+    "typescript": "^7.0.2",
+    "@types/node": "^22.20.5"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "type": "module"
 }

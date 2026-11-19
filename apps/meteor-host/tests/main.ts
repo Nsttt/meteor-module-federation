@@ -1,9 +1,10 @@
+import { Meteor } from "meteor/meteor";
 import assert from "assert";
 
-describe("meteor-remote", function () {
+describe("meteor-host", function () {
   it("package.json has correct name", async function () {
     const { name } = await import("../package.json");
-    assert.strictEqual(name, "meteor-remote");
+    assert.strictEqual(name, "meteor-host");
   });
 
   if (Meteor.isClient) {

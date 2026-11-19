@@ -1,0 +1,21 @@
+{
+  "name": "meteor-rspack-federation",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Rspack plugin that makes Module Federation work inside Meteor's Rspack integration",
+  "type": "module",
+  "exports": "./src/index.ts",
+  "peerDependencies": {
+    "@module-federation/enhanced": "^2.9.0",
+    "@rspack/core": "^2.0.0"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@module-federation/enhanced": "2.9.3",
+    "@rspack/core": "^2.2.7",
+    "@types/node": "^22.20.5",
+    "typescript": "^7.0.2"
+  }
+}

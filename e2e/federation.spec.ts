@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type ConsoleMessage, type Page } from "@playwright/test";
 
 const HOST = "http://localhost:3000";
 const METEOR_REMOTE = "http://localhost:4000";
@@ -7,7 +7,7 @@ const METEOR_REMOTE = "http://localhost:4000";
 // Chrome reports on every Meteor page, federated or not. It's not ours.
 // Dev serves it from /packages/socket-stream-client.js; production merges
 // all packages into one /<sha>.js?meteor_js_resource=true bundle.
-const isMeteorSockjsUnloadNoise = (msg) => {
+const isMeteorSockjsUnloadNoise = (msg: ConsoleMessage) => {
   if (!msg.text().startsWith("Permissions policy violation: unload")) return false;
   const { pathname, searchParams } = new URL(msg.location().url);
   return (
@@ -17,8 +17,8 @@ const isMeteorSockjsUnloadNoise = (msg) => {
 };
 
 /** Fail the test on any page error or console error (e.g. "Invalid hook call"). */
-function collectErrors(page) {
-  const errors = [];
+function collectErrors(page: Page): string[] {
+  const errors: string[] = [];
   page.on("pageerror", (err) => errors.push(err.message));
   page.on("console", (msg) => {
     if (msg.type() === "error" && !isMeteorSockjsUnloadNoise(msg)) errors.push(msg.text());
@@ -40,7 +40,7 @@ test("Meteor host renders the Meteor remote's Guestbook over its own DDP connect
 test("signing on the host writes to the remote's server and shows up live on the remote's own page", async ({ browser }) => {
   const host = await browser.newPage();
   const remote = await browser.newPage();
-  const errors = [...[host, remote].map(collectErrors)];
+  const errors = [host, remote].map(collectErrors);
 
   await remote.goto(METEOR_REMOTE);
   await expect(remote.getByTestId("meteor-guestbook")).toContainText("(own page)");
@@ -80,15 +80,34 @@ test("Rsbuild remote renders host Meteor data with the host's React", async ({ p
   expect(errors).toEqual([]);
 });
 
+test("Meteor.settings overrides the build-time remote URLs", async ({ page }) => {
+  // rspack.config.ts defaults remote_widgets to localhost:3030/mf-manifest.json;
+  // settings*.json add ?from=settings, so only the override fetches that URL.
+  const manifestRequests: string[] = [];
+  page.on("request", (req) => {
+    const url = new URL(req.url());
+    if (url.port === "3030" && url.pathname === "/mf-manifest.json") manifestRequests.push(url.search);
+  });
+  await page.goto(HOST);
+  await expect(page.getByTestId("remote-task-stats")).toBeVisible();
+  expect(manifestRequests).toEqual(["?from=settings"]);
+});
+
 test("both remotes resolved React and Meteor from the host's share scope", async ({ page }) => {
   await page.goto(HOST);
   await expect(page.getByTestId("meteor-guestbook")).toBeVisible();
   await expect(page.getByTestId("remote-task-stats")).toBeVisible();
 
   const providers = await page.evaluate(() => {
-    const host = globalThis.__FEDERATION__.__INSTANCES__.find((i) => i.name === "meteor_host");
+    type Shared = { from: string; loaded?: boolean; lib?: unknown };
+    type Instance = { name: string; shareScopeMap: Record<string, Record<string, Record<string, Shared>>> };
+    const federation = (globalThis as unknown as { __FEDERATION__: { __INSTANCES__: Instance[] } }).__FEDERATION__;
+    const host = federation.__INSTANCES__.find((i) => i.name === "meteor_host")!;
     const scope = host.shareScopeMap.default;
-    const pick = (name) => Object.values(scope[name] ?? {}).filter((s) => s.loaded || s.lib).map((s) => s.from);
+    const pick = (name: string) =>
+      Object.values(scope[name] ?? {})
+        .filter((s) => s.loaded || s.lib)
+        .map((s) => s.from);
     return {
       react: pick("react"),
       jsxRuntime: pick("react/jsx-runtime"),

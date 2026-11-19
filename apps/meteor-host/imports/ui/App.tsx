@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { lazy, useState, type FormEvent } from "react";
 import { Meteor } from "meteor/meteor";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
-import { Tasks } from "/imports/api/tasks";
-import { Header } from "./Header.jsx";
-import { RemoteComponent } from "./RemoteComponent.jsx";
+import { Tasks, type Task } from "/imports/api/tasks";
+import { Header } from "./Header";
+import { RemoteBoundary } from "./RemoteBoundary";
 
-function HostTasks({ tasks }) {
+// Federated modules, resolved by ModuleFederationPlugin at build time and
+// loaded from the remotes at runtime.
+const Guestbook = lazy(() => import("meteor_remote/Guestbook"));
+const TaskStats = lazy(() => import("remote_widgets/TaskStats"));
+
+function HostTasks({ tasks }: { tasks: Task[] }) {
   const [text, setText] = useState("");
-  const add = async (event) => {
+  const add = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!text.trim()) return;
     await Meteor.callAsync("tasks.add", text);
@@ -48,7 +53,9 @@ export const App = () => {
         </p>
 
         <h2>Meteor remote → <code>meteor_remote/Guestbook</code></h2>
-        <RemoteComponent id="meteor_remote/Guestbook" title="Guestbook (served by meteor_remote)" />
+        <RemoteBoundary id="meteor_remote/Guestbook">
+          <Guestbook title="Guestbook (served by meteor_remote)" />
+        </RemoteBoundary>
 
         <h2>Rsbuild remote ← host data → <code>remote_widgets/TaskStats</code></h2>
         {loading() ? (
@@ -56,11 +63,9 @@ export const App = () => {
         ) : (
           <div className="split">
             <HostTasks tasks={tasks} />
-            <RemoteComponent
-              id="remote_widgets/TaskStats"
-              tasks={tasks}
-              onClearDone={() => Meteor.callAsync("tasks.clearDone")}
-            />
+            <RemoteBoundary id="remote_widgets/TaskStats">
+              <TaskStats tasks={tasks} onClearDone={() => Meteor.callAsync("tasks.clearDone")} />
+            </RemoteBoundary>
           </div>
         )}
       </main>
